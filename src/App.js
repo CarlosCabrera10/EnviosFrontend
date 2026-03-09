@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Routes, Route, useLocation } from "react-router-dom";
 import Login from "./pages/Login";
 import Registro from "./pages/Registro";
 import SolicitarEnvio from "./pages/SolicitarEnvio";
@@ -8,9 +8,13 @@ import PrivateRoute from "./components/PrivateRoute";
 import Navbar from "./components/Navbar";
 
 function App() {
+  const location = useLocation();
+  const usuario = JSON.parse(localStorage.getItem("usuario"));
+  const showNavbar = usuario && location.pathname !== "/login" && location.pathname !== "/register";
+
   return (
     <>
-      <Navbar />
+      {showNavbar && <Navbar />}
 
       <Routes>
         <Route path="/login" element={<Login />} />
