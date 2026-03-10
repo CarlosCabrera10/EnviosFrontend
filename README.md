@@ -57,7 +57,9 @@ CORS habilitado para http://localhost:3000
 Para desarrollo, se desactivó CSRF para que React pueda hacer POST/PUT sin token. Ya no se implemento por tiempo
 y solo tiene una autenticacion basica de Spring con cookies.
 
-- Configuración de base de datos
+- Configuración de base de datosC
+
+Cualquier persona puede entrar al sistema y crear su propio usuario y logearse, no hay ninguna restricccion, pero solo pueden ser usuarios normales, no ADMIN
 MySQL configurar el application.properties según corresponda.
 
 Archivo src/main/resources/application.properties:
