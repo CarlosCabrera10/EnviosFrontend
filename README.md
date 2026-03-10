@@ -1,70 +1,151 @@
-# Getting Started with Create React App
+Antes de clonar el proyecto, asegurarse de tener:
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+Backend (Spring Boot)
 
-## Available Scripts
+Java JDK 17+
+Verifica con:
 
-In the project directory, you can run:
+java -version
 
-### `npm start`
+Maven 3.8+
+Verifica con:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+mvn -v
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
+Frontend (React)
 
-### `npm test`
+Node.js 18+
+Verifica con:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+node -v
+npm -v
 
-### `npm run build`
+Librerías de React: se instalarán automáticamente con npm install.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+- Clonar el proyecto
+git clone https://github.com/CarlosCabrera10/EnviosBackend.git
+cd GestorEnvios
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+- Configuración del backend
+Revisar dependencias
 
-### `npm run eject`
+El pom.xml incluye:
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+spring-boot-starter-web
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+spring-boot-starter-data-jpa
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+spring-boot-starter-security
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+lombok (opcional, para autogenerar getters/setters)
 
-## Learn More
+Si faltara alguna librería, Maven la descargará automáticamente al compilar.
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+- Configuración de seguridad
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+Se agregó SecurityConfig.java:
 
-### Code Splitting
+/auth/** → libre (login y registro)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
+/admin/** → solo rol ADMIN
 
-### Analyzing the Bundle Size
+/envios/** → solo rol CLIENTE
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
+CORS habilitado para http://localhost:3000
 
-### Making a Progressive Web App
+Para desarrollo, se desactivó CSRF para que React pueda hacer POST/PUT sin token. Ya no se implemento por tiempo
+y solo tiene una autenticacion basica de Spring con cookies.
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
+- Configuración de base de datos
+MySQL configurar el application.properties según corresponda.
 
-### Advanced Configuration
+Archivo src/main/resources/application.properties:
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
+server.port=8080
 
-### Deployment
+spring.application.name=GestorEnvios
+spring.datasource.url=jdbc:mysql://localhost:3306/envios
+spring.datasource.username=root (segun propia PC)
+spring.datasource.password= (segun propia PC)
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
+# JPA
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true
+spring.jpa.database-platform=org.hibernate.dialect.MariaDBDialect
 
-### `npm run build` fails to minify
 
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+Esto permite que la base de datos se cree automáticamente al iniciar y se pueda revisar en:
+http://localhost:8080/
+
+
+
+- Inicialización de datos
+
+Archivo opcional: src/main/resources/data.sql:
+
+INSERT INTO configuracion (id, capacidad_diaria) VALUES (1, 11);
+
+Esto crea el registro de configuración inicial con capacidad diaria = 11. (Hay un error si esta tabla no tiene un dato inicial,
+no es posible actualizar el numero desde Admin sino existe un primer dato)
+
+4️⃣ Backend – Funcionalidades implementadas
+
+Login / registro → /auth/login y /auth/register
+
+Solicitar envío → /envios/solicitar
+
+Valida capacidad diaria y asigna la primera fecha disponible
+
+Genera código único: ENV-xxxxxxxx
+
+Consultar envío → /envios/{codigo}
+
+Cancelar envío → /envios/cancelar/{codigo} (solo AGENDADO)
+
+Admin → /admin/config (GET/PUT)
+
+Capacidad actual → /admin/capacidad-actual
+
+Los controladores usan EnvioService y ConfiguracionRepository para manejar la lógica.
+
+- Ejecutar backend
+mvn clean install
+mvn spring-boot:run
+
+Backend corriendo en http://localhost:8080
+
+Configuración del frontend (React)
+
+- Para instalar dependencias
+cd enviosFrontend
+npm install
+
+- Ejecutar React
+npm start
+
+Se abrirá en http://localhost:3000
+
+Verifica que el backend esté corriendo antes.
+
+- Frontend – Funcionalidades implementadas
+
+Login / Logout → almacena usuario en localStorage
+
+Solicitar envío → pages/SolicitarEnvio.js
+
+Botón bloqueado si capacidad diaria llena
+
+Muestra código y fecha
+
+Tracking → pages/Tracking.js
+
+Consultar estado por código
+
+Cancelar si estado = AGENDADO
+
+Admin → pages/Admin.js
+
+Consultar / modificar capacidad diaria
+
+Cambiar estado de envíos
